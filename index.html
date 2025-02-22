@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Parking Management System</title>
+  <style>
+    /* General Styles */
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f4f4f4;
+  text-align: center;
+}
+
+header {
+  background-color: #007bff;
+  color: white;
+  padding: 15px 0;
+}
+
+h1, h2, h3 {
+  margin: 10px 0;
+}
+
+/* Step Containers */
+.page {
+  display: none;
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  max-width: 500px;
+  margin: 20px auto;
+}
+
+.page.active {
+  display: block;
+}
+
+/* Buttons */
+button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 5px;
+  margin-top: 10px;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+.navigation-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+/* Parking Spot Styles */
+.parking-spots {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  justify-content: center;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.spot {
+  background-color: #e3f2fd;
+  padding: 15px;
+  border-radius: 5px;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  transition: background-color 0.3s ease-in-out;
+}
+
+.spot p {
+  margin: 5px 0;
+}
+
+/* Reserved Slot */
+.spot.reserved {
+  background-color: #ff0000;
+  color: white;
+}
+
+/* Footer */
+footer {
+  margin-top: 20px;
+  background-color: #007bff;
+  color: white;
+  padding: 10px 0;
+}
+
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1> Parking Management System</h1>
+  </header>
+
+  <main>
+    <section id="available-spots">
+      <h2>Available Parking Spots</h2>
+      <div class="parking-spots">
+        <!-- Parking Spot Templates -->
+        <!-- More spots can be added here as before -->
+        <div class="spot" id="spot1">
+          <p>Spot 1</p>
+          <div class="timer" id="timer1">Time remaining: 01:00:00</div>
+          <button class="reserve-btn" id="reserveBtn1" onclick="showReservationForm(1)">Reserve</button>
+        </div>
+        <div class="spot" id="spot2">
+          <p>Spot 2</p>
+          <div class="timer" id="timer2">Time remaining: 01:00:00</div>
+          <button class="reserve-btn" id="reserveBtn2" onclick="showReservationForm(2)">Reserve</button>
+        </div>
+        <div class="spot" id="spot3">
+          <p>Spot 3</p>
+          <div class="timer" id="timer3">Time remaining: 01:00:00</div>
+          <button class="reserve-btn" id="reserveBtn3" onclick="showReservationForm(3)">Reserve</button>
+        </div>
+        <div class="spot" id="spot4">
+          <p>Spot 4</p>
+          <div class="timer" id="timer4">Time remaining: 01:00:00</div>
+          <button class="reserve-btn" id="reserveBtn4" onclick="showReservationForm(4)">Reserve</button>
+        </div>
+        <div class="spot" id="spot5">
+          <p>Spot 5</p>
+          <div class="timer" id="timer5">Time remaining: 01:00:00</div>
+          <button class="reserve-btn" id="reserveBtn5" onclick="showReservationForm(5)">Reserve</button>
+        </div>
+        <div class="spot" id="spot6">
+          <p>Spot 6</p>
+          <div class="timer" id="timer6">Time remaining: 01:00:00</div>
+          <button class="reserve-btn" id="reserveBtn6" onclick="showReservationForm(6)">Reserve</button>
+        </div>
+        <div class="spot" id="spot7">
+          <p>Spot 7</p>
+          <div class="timer" id="timer7">Time remaining: 01:00:00</div>
+          <button class="reserve-btn" id="reserveBtn7" onclick="showReservationForm(7)">Reserve</button>
+        </div>
+        <div class="spot" id="spot8">
+          <p>Spot 8</p>
+          <div class="timer" id="timer8">Time remaining: 01:00:00</div>
+          <button class="reserve-btn" id="reserveBtn8" onclick="showReservationForm(8)">Reserve</button>
+        </div>
+        <!-- Repeat for other spots -->
+      </div>
+    </section>
+
+    <section id="reservation-history">
+      <h2>Reservation History</h2>
+      <ul id="history-list"></ul>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>Contact Us: <a href="mailto:support@parkingsystem.com" style="color: white;">support@parkingsystem.com</a></p>
+  </footer>
+
+  <script>
+    let reservationHistory = {}; // Store reservation data for each spot
+    let timers = {}; // Store the timers for each spot
+    let spotAvailability = {}; // Track if spots are currently being reserved or extended
+
+    const farePerMinute = 0.583333; // Define the fare per minute
+
+    // Function to show the reservation form to input name and time
+    function showReservationForm(spotId) {
+      if (spotAvailability[spotId] === 'reserved') {
+        alert(`Spot ${spotId} is already reserved. Please wait until it becomes available.`);
+        return;
+      }
+
+      const name = prompt("Enter your name:");
+      const time = prompt("Enter reservation time in minutes (e.g., 60):");
+
+      if (name && time && !isNaN(time)) {
+        const totalTime = parseInt(time) * 60; // Convert minutes to seconds
+        const totalFare = calculateFare(totalTime);
+        const confirmReservation = confirm(`Your reservation for Spot ${spotId} will cost ₹${totalFare.toFixed(2)}. Do you want to proceed?`);
+
+        if (confirmReservation) {
+          reserveSpot(spotId, name, totalTime, totalFare); // Reserve spot
+        }
+      } else {
+        alert("Please provide valid inputs.");
+      }
+    }
+
+
+    // Function to calculate fare
+    function calculateFare(timeInSeconds) {
+      const timeInMinutes = timeInSeconds / 60;
+      return farePerMinute * timeInMinutes;
+    }
+
+    // Function to reserve a parking spot
+    function reserveSpot(spotId, name, timeRemaining, totalFare) {
+      const spotElement = document.getElementById('spot' + spotId);
+      const timerElement = document.getElementById('timer' + spotId);
+      const reserveButton = document.getElementById('reserveBtn' + spotId);
+
+      if (spotElement.classList.contains('reserved') || spotAvailability[spotId] === 'reserved') {
+        alert(`Spot ${spotId} is already reserved.`);
+        return;
+      }
+
+      spotElement.classList.add('reserved');
+      spotAvailability[spotId] = 'reserved';
+      reserveButton.style.display = 'none';
+
+      // Save the reservation details
+      reservationHistory[spotId] = { name, timeRemaining, totalFare };
+
+      const historyList = document.getElementById("history-list");
+      const listItem = document.createElement("li");
+      listItem.textContent = `Spot ${spotId} reserved by ${name} for ${timeRemaining / 60} minutes - Fare: ₹${totalFare.toFixed(2)}`;
+      historyList.appendChild(listItem);
+
+      addCancelButton(spotId);
+      addExtendButton(spotId);
+
+      startCountdown(spotId, timeRemaining);
+      alert(`Spot ${spotId} reserved successfully! Total Fare: ₹${totalFare.toFixed(2)}`);
+    }
+
+
+    // Function to add a cancel button
+    function addCancelButton(spotId) {
+      const spotElement = document.getElementById('spot' + spotId);
+      if (!spotElement.querySelector('.cancel-btn')) {
+        const cancelButton = document.createElement("button");
+        cancelButton.textContent = "Cancel Reservation";
+        cancelButton.classList.add('cancel-btn');
+        cancelButton.onclick = () => cancelReservation(spotId);
+        spotElement.appendChild(cancelButton);
+      }
+    }
+
+    // Function to add an extend button
+    function addExtendButton(spotId) {
+      const spotElement = document.getElementById('spot' + spotId);
+      if (!spotElement.querySelector('.extend-btn')) {
+        const extendButton = document.createElement("button");
+        extendButton.textContent = "Extend Time";
+        extendButton.classList.add('extend-btn');
+        extendButton.onclick = () => extendReservation(spotId);
+        spotElement.appendChild(extendButton);
+      }
+    }
+
+    // Function to extend the reservation time
+    function extendReservation(spotId) {
+      const spotElement = document.getElementById('spot' + spotId);
+      if (!reservationHistory[spotId]) {
+        alert(`Spot ${spotId} is not reserved.`);
+        return;
+      }
+
+      if (spotAvailability[spotId] !== 'reserved') {
+        alert(`Spot ${spotId} is not available for extension.`);
+        return;
+      }
+
+      const additionalTime = prompt("Enter additional time in minutes (e.g., 30):");
+      if (additionalTime && !isNaN(additionalTime)) {
+        const extensionTimeInSeconds = parseInt(additionalTime) * 60;
+        reservationHistory[spotId].timeRemaining += extensionTimeInSeconds;
+
+        // Recalculate fare
+        const additionalFare = calculateFare(extensionTimeInSeconds);
+        reservationHistory[spotId].totalFare += additionalFare;
+
+        clearInterval(timers[spotId]);
+        startCountdown(spotId, reservationHistory[spotId].timeRemaining);
+
+        alert(`Time extended for Spot ${spotId} by ${additionalTime} minutes. Additional Fare: $${additionalFare.toFixed(2)}`);
+      } else {
+        alert("Please enter a valid number for additional time.");
+      }
+    }
+
+    // Function to cancel a reservation
+    function cancelReservation(spotId) {
+      const spotElement = document.getElementById('spot' + spotId);
+
+      if (!spotElement.classList.contains('reserved')) {
+        alert(`Spot ${spotId} is not reserved.`);
+        return;
+      }
+
+      spotElement.classList.remove('reserved');
+      spotAvailability[spotId] = 'available';
+
+      const reserveButton = document.getElementById('reserveBtn' + spotId);
+      reserveButton.style.display = 'inline-block';
+
+      const cancelBtn = spotElement.querySelector('.cancel-btn');
+      if (cancelBtn) cancelBtn.remove();
+      const extendBtn = spotElement.querySelector('.extend-btn');
+      if (extendBtn) extendBtn.remove();
+
+      const historyList = document.getElementById("history-list");
+      const items = historyList.getElementsByTagName('li');
+      for (let item of items) {
+        if (item.textContent.includes(`Spot ${spotId}`)) {
+          historyList.removeChild(item);
+          break;
+        }
+      }
+
+      clearInterval(timers[spotId]);
+
+      const timerElement = document.getElementById('timer' + spotId);
+      timerElement.textContent = `Time remaining: 01:00:00`;
+
+      alert(`Reservation for Spot ${spotId} has been canceled.`);
+    }
+
+    // Function to start the countdown timer
+    function startCountdown(spotId, timeRemaining) {
+      const timerElement = document.getElementById('timer' + spotId);
+
+      timers[spotId] = setInterval(function () {
+        if (timeRemaining <= 0) {
+          clearInterval(timers[spotId]);
+          alert(`Time's up for Spot ${spotId}! Reservation canceled automatically.`);
+          cancelReservation(spotId);
+        } else {
+          timeRemaining--;
+          const hours = Math.floor(timeRemaining / 3600);
+          const minutes = Math.floor((timeRemaining % 3600) / 60);
+          const seconds = timeRemaining % 60;
+          timerElement.textContent = `Time remaining: ${formatTime(hours)}:${formatTime(minutes)}:${formatTime(seconds)}`;
+        }
+      }, 1000);
+    }
+
+    // Helper function to format time
+    function formatTime(time) {
+      return time < 10 ? '0' + time : time;
+    }
+    // Function to extend the reservation time
+function extendReservation(spotId) {
+  const spotElement = document.getElementById('spot' + spotId);
+  if (!reservationHistory[spotId]) {
+    alert(`Spot ${spotId} is not reserved.`);
+    return;
+  }
+
+  if (spotAvailability[spotId] !== 'reserved') {
+    alert(`Spot ${spotId} is not available for extension.`);
+    return;
+  }
+
+  const additionalTime = prompt("Enter additional time in minutes (e.g., 30):");
+  if (additionalTime && !isNaN(additionalTime)) {
+    const extensionTimeInSeconds = parseInt(additionalTime) * 60;
+    reservationHistory[spotId].timeRemaining += extensionTimeInSeconds;
+
+    // Recalculate fare
+    const additionalFare = calculateFare(extensionTimeInSeconds);
+    reservationHistory[spotId].totalFare += additionalFare;
+
+    clearInterval(timers[spotId]);
+    startCountdown(spotId, reservationHistory[spotId].timeRemaining);
+
+    alert(`Time extended for Spot ${spotId} by ${additionalTime} minutes. Additional Fare: $${additionalFare.toFixed(2)}`);
+
+    // Update history: Find and update the existing list item
+    const historyList = document.getElementById("history-list");
+    const items = historyList.getElementsByTagName('li');
+    for (let item of items) {
+      if (item.textContent.includes(`Spot ${spotId}`)) {
+        item.textContent = `Spot ${spotId} reserved by ${reservationHistory[spotId].name} for ${(reservationHistory[spotId].timeRemaining / 60).toFixed(0)} minutes - Fare: $${reservationHistory[spotId].totalFare.toFixed(2)}. Extended by ${additionalTime} minutes. New Fare: $${reservationHistory[spotId].totalFare.toFixed(2)}`;
+        break; // Exit the loop after updating the correct entry
+      }
+    }
+
+  } else {
+    alert("Please enter a valid number for additional time.");
+  }
+}
+  </script>
+  <script>
+    function bookSlot() {
+      // Simulate booking logic
+      localStorage.setItem("bookingStatus", "confirmed");
+      alert("Slot booked successfully! Now you can proceed to payment.");
+  
+      // Enable Pay button after booking
+      document.getElementById("pay-btn").disabled = false;
+    }
+  
+    function redirectToPayment() {
+      window.location.href = "payment.html"; // Redirect to payment page
+    }
+  
+    // Check booking status when loading the page
+    document.addEventListener("DOMContentLoaded", function () {
+      if (localStorage.getItem("bookingStatus") === "confirmed") {
+        document.getElementById("pay-btn").disabled = false;
+      }
+    });
+  </script>
+  
+</body>
+</html>

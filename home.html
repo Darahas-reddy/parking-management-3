@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Parking Management</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <h1>Parking Management System</h1>
+  </header>
+<style>
+/* General Styles */
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f4f4f4;
+  text-align: center;
+}
+
+header {
+  background-color: #007bff;
+  color: white;
+  padding: 15px 0;
+}
+
+h1, h2, h3 {
+  margin: 10px 0;
+}
+
+/* Step Containers */
+.page {
+  display: none;
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  max-width: 500px;
+  margin: 20px auto;
+}
+
+.page.active {
+  display: block;
+}
+
+/* Buttons */
+button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 5px;
+  margin-top: 10px;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+.navigation-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+/* Parking Spot Styles */
+.parking-spots {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.spot {
+  background-color: #e3f2fd;
+  padding: 15px;
+  border-radius: 5px;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.spot p {
+  margin: 5px 0;
+}
+
+/* Reserved Slot */
+.spot.reserved {
+  background-color: #6c757d;
+  color: white;
+}
+
+/* Footer */
+footer {
+  margin-top: 20px;
+  background-color: #007bff;
+  color: white;
+  padding: 10px 0;
+}
+
+</style>
+  <main>
+    <!-- Step 1: Location Permission -->
+    <div class="page active" id="step1">
+      <h2>Allow Location Access</h2>
+      <p>We need your location to show nearby parking spots.</p>
+      <button onclick="requestLocation()">Allow Location</button>
+      <h3>Or Select a City</h3>
+      <select id="citySelect">
+        <option value="Mumbai">Mumbai</option>
+        <option value="Delhi">Delhi</option>
+        <option value="Bangalore">Bangalore</option>
+        <option value="Kolkata">Kolkata</option>
+        <option value="Chennai">Chennai</option>
+        <option value="Hyderabad">Hyderabad</option>
+      </select>
+      <button onclick="selectCity()">Next</button>
+    </div>
+
+    <!-- Step 2: Select Parking Spot -->
+    <div class="page" id="step2">
+      <h2>Select Your Parking Spot</h2>
+      <div id="available-spots" class="parking-spots"></div>
+      <div class="navigation-buttons">
+        <button onclick="previousStep()">Back</button>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 Parking Management System</p>
+  </footer>
+
+  <script>
+    let currentStep = 0;
+    function showStep(stepIndex) {
+      let steps = document.querySelectorAll(".page");
+      steps.forEach(step => step.classList.remove("active"));
+      steps[stepIndex].classList.add("active");
+    }
+
+    function nextStep() {
+      currentStep++;
+      showStep(currentStep);
+    }
+
+    function previousStep() {
+      if (currentStep > 0) {
+        currentStep--;
+        showStep(currentStep);
+      }
+    }
+
+    function requestLocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            alert(`Location received: ${position.coords.latitude}, ${position.coords.longitude}`);
+            fetchParkingSpots("GPS");
+          },
+          (error) => {
+            alert("Location access denied. Please select a city.");
+          }
+        );
+      } else {
+        alert("Geolocation is not supported by this browser.");
+      }
+    }
+
+    function selectCity() {
+      let selectedCity = document.getElementById("citySelect").value;
+      fetchParkingSpots(selectedCity);
+    }
+
+    function fetchParkingSpots(location) {
+      let parkingData = {
+        "Mumbai": ["Parking Lot A", "Parking Lot B", "Parking Lot C"],
+        "Delhi": ["Lot 1", "Lot 2", "Lot 3"],
+        "Bangalore": ["Spot X", "Spot Y", "Spot Z"],
+        "Kolkata": ["Park 101", "Park 102", "Park 103"],
+        "Chennai": ["Chennai Parking 1", "Chennai Parking 2"],
+        "Hyderabad": ["H1", "H2", "H3"]
+      };
+      
+      let spots = parkingData[location] || ["Default Parking 1", "Default Parking 2"];
+      let spotsContainer = document.getElementById("available-spots");
+      spotsContainer.innerHTML = "";
+      spots.forEach(spot => {
+        let div = document.createElement("div");
+        div.classList.add("spot");
+        div.innerHTML = `<p>${spot}</p><button onclick="redirectToSlots()">Check Slots</button>`;
+        spotsContainer.appendChild(div);
+      });
+      nextStep();
+    }
+
+    function redirectToSlots() {
+      window.location.href = "index.html";
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      showStep(currentStep);
+    });
+  </script>
+</body>
+</html>
